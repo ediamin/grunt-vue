@@ -1,0 +1,42 @@
+{
+  "name": "grunt-vue",
+  "description": "Grunt task for compiling Vue.js files",
+  "version": "0.1.0",
+  "homepage": "https://github.com/ediamin/grunt-vue",
+  "author": {
+    "name": "Edi Amin",
+    "email": "to.ediamin@gmail.com",
+    "url": "http://ediamin.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/ediamin/grunt-vue.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ediamin/grunt-vue/issues"
+  },
+  "licenses": [
+    {
+      "type": "MIT",
+      "url": "https://github.com/ediamin/grunt-vue/blob/master/LICENSE-MIT"
+    }
+  ],
+  "engines": {
+    "node": ">= 0.8.0"
+  },
+  "scripts": {
+    "test": "grunt test"
+  },
+  "devDependencies": {
+    "grunt-contrib-jshint": "^0.9.2",
+    "grunt-contrib-clean": "^0.5.0",
+    "grunt-contrib-nodeunit": "^0.3.3",
+    "grunt": "~0.4.5"
+  },
+  "keywords": [
+    "es6", "automatic", "task", "grunt", "compiler", "vuejs", "vue"
+  ],
+  "dependencies": {
+    "html-minifier": "^3.0.2"
+  }
+}
