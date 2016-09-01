@@ -9,6 +9,7 @@
 'use strict';
 
 module.exports = function(grunt) {
+  var fs = require('fs');
   var path = require('path');
   var minify = require('html-minifier').minify;
 
@@ -101,11 +102,6 @@ module.exports = function(grunt) {
 
     var vueDirs = ['components', 'directives', 'filters', 'mixins', 'partials', 'transitions'];
 
-    var i = 0;
-
-    var jsFiles = [];
-    var htmlTemplates = {};
-
     // bail out if no destination js or source directory specified
     if (!this.data.dest) {
       grunt.log.warn('Destination script path is not specified.');
@@ -115,47 +111,66 @@ module.exports = function(grunt) {
     if (!this.data.src) {
       grunt.log.warn('Source directory is not specified.');
       return false;
+    } else if (!grunt.file.isDir(this.data.src)) {
+      grunt.log.warn('Invalid source directory');
     }
 
-    grunt.file.recurse(this.data.src, function (abspath, rootdir, subdir, filename) {
+    var srcDir = this.data.src;
+    var subDirs = fs.readdirSync(srcDir);
+    var vueScripts = [];
+    var htmlTemplates = {};
 
-      if ('.js' !== path.extname(abspath)) {
-        return;
-      }
+    vueDirs.forEach(function (vueDir) {
+      if (subDirs.indexOf(vueDir) >= 0) {
+        var dir = path.format({
+          dir: srcDir,
+          base: vueDir
+        });
 
-      if (subdir) {
-        var hierarchy = path.parse(subdir);
+        if ('components' !== vueDir) {
+          var files = fs.readdirSync(dir);
 
-        if (vueDirs.indexOf(hierarchy.base) >= 0) {
-          jsFiles.push(abspath);
+          files.forEach(function (file) {
+            if ('.js' === path.extname(file)) {
+              var filepath = path.format({
+                dir: dir,
+                base: file
+              });
 
-        } else if ('components' === hierarchy.dir) {
-          var dir = path.dirname(abspath);
-
-          var htmlFile = path.format({
-            dir: dir,
-            base: 'template.html'
+              vueScripts.push(filepath);
+            }
           });
 
-          var component = {
-            filepath: abspath,
-            name: path.basename(dir),
-            html: compileTemplate(htmlFile, options.quoteChar, options.indentString, options.htmlmin, options.process)
-          };
+        } else {
+          var components = fs.readdirSync(dir);
 
-          jsFiles.push(component);
+          components.forEach(function (component) {
+            var script = path.format({
+              dir: dir,
+              base: component + path.sep + 'index.js',
+            });
+
+            var template = path.format({
+              dir: dir,
+              base: component + path.sep + 'template.html',
+            });
+
+            vueScripts.push({
+              js: script,
+              html: compileTemplate(template, options.quoteChar, options.indentString, options.htmlmin, options.process)
+            });
+          });
         }
 
       }
-
     });
 
     // Iterate over all specified file groups.
-    var srcCode = jsFiles.map(function(filepath) {
+    var srcCode = vueScripts.map(function(filepath) {
       var js = '';
 
       if (Object.prototype.toString.call(filepath) == "[object Object]") {
-        js = grunt.file.read(filepath.filepath).replace(/_TEMPLATE/, filepath.html);
+        js = grunt.file.read(filepath.js).replace(/_TEMPLATE/, filepath.html);
       } else {
         js = grunt.file.read(filepath);
       }
