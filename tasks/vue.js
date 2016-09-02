@@ -120,6 +120,9 @@ module.exports = function(grunt) {
     var vueScripts = [];
     var htmlTemplates = {};
 
+    var includeOnly = this.data.includeOnly || [];
+    var exclude = this.data.exclude || [];
+
     vueDirs.forEach(function (vueDir) {
       if (subDirs.indexOf(vueDir) >= 0) {
         var dir = path.format({
@@ -127,27 +130,36 @@ module.exports = function(grunt) {
           base: vueDir
         });
 
+        // for param like exclude.filters = 'all', do not proceed and move to next vueDir
+        if ('all' === exclude[vueDir]) {
+          return;
+        }
+
+        // dir except components
         if ('components' !== vueDir) {
           var files = fs.readdirSync(dir);
 
           files.forEach(function (file) {
-            if ('.js' === path.extname(file)) {
-              var filepath = path.format({
-                dir: dir,
-                base: file
-              });
+            // we need js files only
+            if ('.js' !== path.extname(file)) {
+              return;
+            }
 
-              vueScripts.push(filepath);
+            // include only if its not mentioned in exclude param
+            if (!exclude[vueDir] || exclude[vueDir].indexOf(path.basename(file, '.js')) < 0) {
+              vueScripts.push(dir + path.sep + file);
             }
           });
 
+        // vue components
         } else {
           var components = fs.readdirSync(dir);
 
           components.forEach(function (component) {
             var compDir = dir + path.sep + component;
 
-            if (!grunt.file.isDir(compDir)) {
+            // if this component is in exclude param, then do not include
+            if (!grunt.file.isDir(compDir) || (exclude[vueDir] && exclude[vueDir].indexOf(component) >= 0)) {
               return;
             }
 
@@ -158,6 +170,7 @@ module.exports = function(grunt) {
 
             var template = compDir + path.sep + 'template.html';
 
+            // if template.html exists then convert html to string
             if (grunt.file.isFile(template)) {
               contents.html = compileTemplate(template, options.quoteChar, options.indentString, options.htmlmin, options.process);
             }
@@ -168,6 +181,9 @@ module.exports = function(grunt) {
 
       }
     });
+
+    console.log(vueScripts);
+    // console.log(this.data.exclude);
 
     // Iterate over all specified file groups.
     var srcCode = vueScripts.map(function(filepath) {
