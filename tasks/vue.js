@@ -145,20 +145,24 @@ module.exports = function(grunt) {
           var components = fs.readdirSync(dir);
 
           components.forEach(function (component) {
-            var script = path.format({
-              dir: dir,
-              base: component + path.sep + 'index.js',
-            });
+            var compDir = dir + path.sep + component;
 
-            var template = path.format({
-              dir: dir,
-              base: component + path.sep + 'template.html',
-            });
+            if (!grunt.file.isDir(compDir)) {
+              return;
+            }
 
-            vueScripts.push({
-              js: script,
-              html: compileTemplate(template, options.quoteChar, options.indentString, options.htmlmin, options.process)
-            });
+            var contents = {
+              js: compDir + path.sep + 'index.js',
+              html: null
+            };
+
+            var template = compDir + path.sep + 'template.html';
+
+            if (grunt.file.isFile(template)) {
+              contents.html = compileTemplate(template, options.quoteChar, options.indentString, options.htmlmin, options.process);
+            }
+
+            vueScripts.push(contents);
           });
         }
 
@@ -170,21 +174,27 @@ module.exports = function(grunt) {
       var js = '';
 
       if (Object.prototype.toString.call(filepath) == "[object Object]") {
-        js = grunt.file.read(filepath.js).replace(/_TEMPLATE/, filepath.html);
+        js = grunt.file.read(filepath.js);
+
+        if (filepath.html) {
+          js = js.replace(/_TEMPLATE/, filepath.html);
+        }
+
       } else {
         js = grunt.file.read(filepath);
       }
 
       return js;
+
     }).filter(function (code) {
       return code.length;
+
     }).join(grunt.util.normalizelf(options.separator));
 
     // Write the destination file.
     grunt.file.write(this.data.dest, srcCode);
 
     // Print a success message.
-    // grunt.log.writeln('File "' + this.data.dest + '" created.');
     grunt.log.writeln('Created ' + blue(this.data.dest) + ' ' + getSize(srcCode));
 
   });
