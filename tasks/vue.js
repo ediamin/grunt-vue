@@ -120,8 +120,13 @@ module.exports = function(grunt) {
     var vueScripts = [];
     var htmlTemplates = {};
 
-    var includeOnly = this.data.includeOnly || [];
-    var exclude = this.data.exclude || [];
+    var includeOnly = this.data.includeOnly || {};
+    var includeOnlyDirs = Object.keys(includeOnly);
+    var exclude = this.data.exclude || {};
+
+    if (includeOnlyDirs.length) {
+      vueDirs = includeOnlyDirs;
+    }
 
     vueDirs.forEach(function (vueDir) {
       if (subDirs.indexOf(vueDir) >= 0) {
@@ -137,7 +142,16 @@ module.exports = function(grunt) {
 
         // dir except components
         if ('components' !== vueDir) {
-          var files = fs.readdirSync(dir);
+          var files = [];
+
+          if (includeOnlyDirs.length && 'all' !== includeOnly[vueDir]) {
+            includeOnly[vueDir].forEach(function (file) {
+              files.push(file + '.js');
+            });
+
+          } else {
+            files = fs.readdirSync(dir);
+          }
 
           files.forEach(function (file) {
             // we need js files only
@@ -153,7 +167,13 @@ module.exports = function(grunt) {
 
         // vue components
         } else {
-          var components = fs.readdirSync(dir);
+          var components = [];
+
+          if (includeOnlyDirs.length && 'all' !== includeOnly['components']) {
+            components = includeOnly['components'];
+          } else {
+            components = fs.readdirSync(dir);
+          }
 
           components.forEach(function (component) {
             var compDir = dir + path.sep + component;
@@ -181,9 +201,6 @@ module.exports = function(grunt) {
 
       }
     });
-
-    console.log(vueScripts);
-    // console.log(this.data.exclude);
 
     // Iterate over all specified file groups.
     var srcCode = vueScripts.map(function(filepath) {
