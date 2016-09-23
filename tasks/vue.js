@@ -100,7 +100,7 @@ module.exports = function(grunt) {
       separator: grunt.util.linefeed
     });
 
-    var vueDirs = ['components', 'directives', 'filters', 'mixins', 'partials', 'transitions'];
+    var vueDirs = ['mixins', 'transitions', 'filters', 'partials', 'directives', 'components'];
 
     // bail out if no destination js or source directory specified
     if (!this.data.dest) {
