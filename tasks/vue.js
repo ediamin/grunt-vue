@@ -124,8 +124,14 @@ module.exports = function(grunt) {
     var includeOnlyDirs = Object.keys(includeOnly);
     var exclude = this.data.exclude || {};
 
+    if (includeOnlyDirs.length) {
+      vueDirs = vueDirs.filter(function (dir) {
+        return (includeOnlyDirs.indexOf(dir) >= 0);
+      });
+    }
+
     vueDirs.forEach(function (vueDir) {
-      if (includeOnlyDirs.indexOf(vueDir) >=0 && subDirs.indexOf(vueDir) >= 0) {
+      if (subDirs.indexOf(vueDir) >= 0) {
         var dir = path.format({
           dir: srcDir,
           base: vueDir
