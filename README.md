@@ -53,7 +53,7 @@ grunt.initConfig({
         task2: {
             dest: '/path/to/compiled-script.js',
             src: '/path/to/source/dir',
-            include: {
+            includeOnly: {
                 components: ['component1', 'component2'],
                 directives: ['directive1', 'directive2'],
                 mixins: 'all'
